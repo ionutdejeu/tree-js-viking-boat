@@ -8,6 +8,7 @@ import {
     SmoothShading,
     Object3D,
     DoubleSide,
+    FrontSide,
     PlaneBufferGeometry,
     MeshLambertMaterial,
     PointLight,
@@ -15,6 +16,8 @@ import {
 } from 'three'
 import * as SN from 'simplex-noise';
 import * as chroma from 'chroma-js';
+import { preloader } from '../loader'
+
 
 export class Waves{
     constructor(scene,conf){
@@ -46,8 +49,9 @@ export class Waves{
 
     createPlane(scene,planeWidht,planeHeight){
         this.simplex = new SN();
-
-        this.mat = new MeshLambertMaterial({ color: 0x03f0fc, side: DoubleSide });
+        const wTexture = preloader.get('waterTexture');
+        console.log(wTexture)
+        this.mat = new MeshLambertMaterial({ side:FrontSide,color: 0xffffff,map:wTexture , emissive:0xffffff,emissiveIntensity:0.1});
         this.geo = new PlaneBufferGeometry(planeWidht,planeWidht,planeWidht/2,planeHeight/2);
         this.plane = new Mesh(this.geo,this.mat);
         
@@ -86,7 +90,7 @@ export class Waves{
         const time = Date.now() * 0.0002;
         for (let i = 0; i < gArray.length; i += 3) {
           gArray[i + 2] = this.simplex.noise4D(gArray[i] / this.conf.xyCoef,
-            gArray[i + 1] / this.conf.xyCoef, time, 2) * this.conf.zCoef;
+            gArray[i + 1] / this.conf.xyCoef, time, time) * this.conf.zCoef;
         }
         this.plane.geometry.attributes.position.needsUpdate = true;
         // plane.geometry.computeBoundingSphere();

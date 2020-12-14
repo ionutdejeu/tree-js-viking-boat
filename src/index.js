@@ -22,6 +22,7 @@ import { ImageResolver } from './loader/resolvers/ImageResolver'
 import { GLTFResolver } from './loader/resolvers/GLTFResolver'
 import {Map} from './objects/Map';
 import {Car} from './objects/Car';
+import Boat from './objects/Boat';
 import { Waves } from './objects/Waves'
 
 /* Custom settings */
@@ -30,6 +31,8 @@ const SETTINGS = {
 }
 let composer
 let stats
+let waves
+let boat
 
 /* Init renderer and canvas */
 const container = document.body
@@ -55,7 +58,7 @@ camera.position.z = 90
 /* Lights */
 let hemiLight = new HemisphereLight( 0xEBF7FD, 0xEBF7FD, 0.2 );
 hemiLight.position.set( 0, 20, 20 );
-const ambient = new AmbientLight(0x404040,1.5 ); // soft white light
+const ambient = new AmbientLight(0xffdb26,1.5 ); // soft white light
 scene.add( ambient );
 scene.add( hemiLight );
 
@@ -63,11 +66,10 @@ scene.add( hemiLight );
 //let m = new Map();
 //scene.add(m.mesh);
 
-let waves = new Waves(scene,{});
 
 
-let car  = new Car(camera);
-scene.add(car);
+//let car  = new Car(camera);
+//scene.add(car);
 
 
 /* Various event listeners */
@@ -78,6 +80,9 @@ preloader.init(new ImageResolver(), new GLTFResolver(), new TextureResolver())
 preloader.load([
   { id: 'searchImage', type: 'image', url: SMAAEffect.searchImageDataURL },
   { id: 'areaImage', type: 'image', url: SMAAEffect.areaImageDataURL },
+  { id: 'waterTexture', type: 'texture', url: 'assets/textures/water_texture.png' },
+  { id: 'boat', type: 'gltf', url: 'assets/models/low_poly_boat.glb' },
+
 ]).then(() => {
   initPostProcessing()
   onResize()
@@ -108,6 +113,9 @@ function initPostProcessing () {
   composer.addPass(renderPass)
   composer.addPass(effectPass)
   effectPass.renderToScreen = true
+  waves = new Waves(scene,{});
+  boat = new Boat(camera);
+  scene.add(boat);
 }
 
 /**
@@ -141,7 +149,9 @@ function render () {
   if (DEVELOPMENT) {
     stats.begin()
   }
-  car.update();
+  boat.update();
+  //car.update();
+  
   renderer.toneMappingExposure = Math.pow( 0.91, 5.0 );
   waves.render();
   if (SETTINGS.useComposer) {
