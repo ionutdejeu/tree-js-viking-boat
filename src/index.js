@@ -23,8 +23,8 @@ import { GLTFResolver } from './loader/resolvers/GLTFResolver'
 import {Map} from './objects/Map';
 import {Car} from './objects/Car';
 import Boat from './objects/Boat';
-import { Waves } from './objects/Waves'
-
+import { Waves } from './objects/Waves';
+import Island from './objects/Island'
 /* Custom settings */
 const SETTINGS = {
   useComposer: true
@@ -82,6 +82,7 @@ preloader.load([
   { id: 'areaImage', type: 'image', url: SMAAEffect.areaImageDataURL },
   { id: 'waterTexture', type: 'texture', url: 'assets/textures/water_texture.png' },
   { id: 'boat', type: 'gltf', url: 'assets/models/low_poly_boat.glb' },
+  { id: 'island', type: 'gltf', url: 'assets/models/low_polly_island.glb' },
 
 ]).then(() => {
   initPostProcessing()
@@ -116,6 +117,9 @@ function initPostProcessing () {
   waves = new Waves(scene,{});
   boat = new Boat(camera);
   scene.add(boat);
+
+  var i = new Island();
+  scene.add(i);
 }
 
 /**

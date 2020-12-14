@@ -12,6 +12,7 @@ import {
   Vector3
 } from 'three'
 import { preloader } from '../loader'
+import {coeficients} from './Waves';
 
 let boatHulMaterial = new MeshPhongMaterial({ 
   color: 0xB74242, 
@@ -22,6 +23,15 @@ let boatHulMaterial = new MeshPhongMaterial({
 
 let boatSailMaterial = new MeshPhongMaterial({ 
   color: 0xffffff, 
+  shininess: 100, 
+  emissive: 0x990000,
+  emissiveIntensity: 0.7
+});
+
+let carTopMaterial = new MeshPhongMaterial({ 
+  color: 0xB74242, 
+  //specular: 0x009900,
+  //bumpMap: noiseMap(128, 20, 5),
   shininess: 100, 
   emissive: 0x990000,
   emissiveIntensity: 0.7
@@ -46,13 +56,23 @@ export default class Boat extends Object3D {
     let hulIndex = [0,1];
     let sailIndex = [2,3];
 
-    
-    for(let i = 0;i<hulIndex;i++){
-      boat.scene.children[hulIndex[i]].material= boatHulMaterial;
+    for(let i = 0;i<boat.scene.children.lenght;i++){
+      boat.scene.children[i].material =  new MeshPhongMaterial({ 
+        color: 0xB74242, 
+        //specular: 0x009900,
+        //bumpMap: noiseMap(128, 20, 5),
+        shininess: 100, 
+        emissive: 0x990000,
+        emissiveIntensity: 0.7
+      });
     }
-    for(let i = 0;i<sailIndex;i++){
-      boat.scene.children[sailIndex[i]].material= boatSailMaterial;
-    }
+
+    //for(let i = 0;i<hulIndex;i++){
+    //  boat.scene.children[hulIndex[i]].material= boatHulMaterial;
+    //}
+    //for(let i = 0;i<sailIndex;i++){
+    //  boat.scene.children[sailIndex[i]].material= boatSailMaterial;
+    //}
 
     this.add(boat.scene)
   
@@ -74,36 +94,6 @@ export default class Boat extends Object3D {
     
     this.add(light);
     
-
-    /*////////////////////////////////////////*/
-
-    this.lights = Array(2).fill(null);
-    this.lights = this.lights.map((light,i) => {
-    
-        light = new SpotLight( 0xffffff );
-        light.position.x = 11;
-        light.position.y = ( i < 1 ? -3 : 3 ); //;
-        light.position.z = -3;
-        light.angle = Math.PI / 3.5;
-
-        light.castShadow = true;
-
-        light.shadow.mapSize.width = 512;
-        light.shadow.mapSize.height = 512;
-
-        light.shadow.camera.near = 1;
-        light.shadow.camera.far = 400;
-        light.shadow.camera.fov = 40;
-        
-        light.target.position.y = ( i < 1 ? -0.5 : 0.5 );
-        light.target.position.x = 35;// = Math.PI/2;
-        
-        this.add( light.target );
-        this.add( light );
-        
-        return light;
-    });
-    
     document.body.addEventListener("keydown",function(e) {
         KeysPressed[e.keyCode] = true;
         e.preventDefault();
@@ -123,6 +113,12 @@ keyDown(e){
 keyUp(e){
      this.keys[e.code] = false;
      e.preventDefault();
+}
+
+getBoatPos(position){
+  const time = Date.now() * 0.002;
+  return Math.sin(time * coeficients.speed + position.x / coeficients.xyCoef + 
+    position.y / coeficients.xyCoef)*coeficients.zCoef;
 }
 update(){
     var prev = {
@@ -164,27 +160,7 @@ update(){
     this.position.y += -ydir;
     this.rotation.z = -this.angle;
     
-    
-    if ( this.lights ) {
-        this.lights.forEach((light,i) => {
-            
-            light.rotation.z = this.angle;  
-            light.target.position.clone(this.position);
-            light.target.position.x += 10;
-            light.target.position.y += ( i < 1 ? -0.5 : 0.5 );
-            light.target.updateMatrixWorld();
-        });
-        
-        if ( KeysPressed[76] ) {
-    
-            KeysPressed[76] = false;
-            this.lightsOn = !this.lightsOn;
-            this.lights = this.lightsOn;
-        
-        }
-    }
-    
-
+    this.position.z = this.getBoatPos(this.position);
     this.position.x = ( this.position.x > 990 || this.position.x < -990 ? prev.x : this.position.x );
     this.position.y = ( this.position.y > 990 || this.position.y < -990 ? prev.y : this.position.y );
 
