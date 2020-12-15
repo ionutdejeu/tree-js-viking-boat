@@ -22,13 +22,21 @@ import { ImageResolver } from './loader/resolvers/ImageResolver'
 import { GLTFResolver } from './loader/resolvers/GLTFResolver'
 import {Map} from './objects/Map';
 import {Car} from './objects/Car';
-import Boat from './objects/Boat';
+import {Boat} from './objects/Boat';
 import { Waves } from './objects/Waves';
 import Island from './objects/Island'
+import {IslandPort} from './objects/Port'
+
+import {UIControllerInstance} from './controls/UIController';
+import { ResourceTypes } from './controls/GameController'
+
 /* Custom settings */
 const SETTINGS = {
-  useComposer: true
+  useComposer: true,
+  bla:123,
+  oper:"test"
 }
+
 let composer
 let stats
 let waves
@@ -52,7 +60,7 @@ renderer.shadowMap.type = PCFSoftShadowMap;
 const scene = new Scene();
 scene.fog = new Fog(0xffffff, 20, 600);
 const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 10,600);
-camera.position.z = 90
+camera.position.z = 90;
 
 
 /* Lights */
@@ -66,7 +74,11 @@ scene.add( hemiLight );
 //let m = new Map();
 //scene.add(m.mesh);
 
-
+const welcome_msg  = `
+  Welcome to the sea of vikings  
+  Find near by ports and start trading goods in order to win the game. 
+  To win this game you must trade 100 wood, 100 sheep, 100 rock, 100 hay stack. 
+`
 
 //let car  = new Car(camera);
 //scene.add(car);
@@ -83,26 +95,26 @@ preloader.load([
   { id: 'waterTexture', type: 'texture', url: 'assets/textures/water_texture.png' },
   { id: 'boat', type: 'gltf', url: 'assets/models/low_poly_boat.glb' },
   { id: 'island', type: 'gltf', url: 'assets/models/low_polly_island.glb' },
+  { id: 'port', type: 'gltf', url: 'assets/models/low_polly_island_port.glb' },
+
 
 ]).then(() => {
   initPostProcessing()
   onResize()
   animate()
+  //alert(welcome_msg);
 })
 
-/* some stuff with gui */
-if (DEVELOPMENT) {
-  const guigui = require('guigui')
-  guigui.add(SETTINGS, 'useComposer')
 
-  const Stats = require('stats.js')
-  stats = new Stats()
-  stats.showPanel(0)
-  container.appendChild(stats.domElement)
-  stats.domElement.style.position = 'absolute'
-  stats.domElement.style.top = 0
-  stats.domElement.style.left = 0
-}
+   
+const Stats = require('stats.js')
+stats = new Stats()
+stats.showPanel(0)
+container.appendChild(stats.domElement)
+stats.domElement.style.position = 'absolute'
+stats.domElement.style.top = 0
+stats.domElement.style.left = 0
+
 
 /* -------------------------------------------------------------------------------- */
 function initPostProcessing () {
@@ -118,8 +130,27 @@ function initPostProcessing () {
   boat = new Boat(camera);
   scene.add(boat);
 
-  var i = new Island();
+  var i = new Island(new Vector3(100,100,10));
   scene.add(i);
+  var portIsl = new IslandPort(new Vector3(-100,-100,100),"Prort North",{
+    from:ResourceTypes.Bricks,
+    to:ResourceTypes.Sheep,
+    factor:3
+  });
+  scene.add(portIsl);
+  var portIsl = new IslandPort(new Vector3(-800,-800,100),"Port South",{
+    from:ResourceTypes.Wood,
+    to:ResourceTypes.Grass,
+    factor:2
+  });
+  var portIsl = new IslandPort(new Vector3(0,900,100),"Port East",{
+    from:ResourceTypes.Wood,
+    to:ResourceTypes.Grass,
+    factor:2
+  });
+  scene.add(portIsl);
+
+  console.log(scene);
 }
 
 /**
@@ -136,9 +167,8 @@ function onResize () {
   RAF
 */
 function animate() {
-  window.requestAnimationFrame(animate)
-  render()
-
+  window.requestAnimationFrame(animate);
+  render();
 }
 
 
@@ -149,6 +179,8 @@ function animate() {
 /**
   Render loop
 */
+
+
 function render () {
   if (DEVELOPMENT) {
     stats.begin()
@@ -169,3 +201,5 @@ function render () {
     stats.end()
   }
 }
+
+

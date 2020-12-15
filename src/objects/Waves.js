@@ -20,7 +20,7 @@ import * as chroma from 'chroma-js';
 import { preloader } from '../loader'
 
 export const coeficients = {
-    xyCoef: 50,
+    xyCoef: 120,
     zCoef: 20,
     speed:1.18
 }
@@ -30,7 +30,7 @@ export class Waves{
         this.conf= {
             fov: 75,
             cameraZ: 75,
-            xyCoef: 50,
+            xyCoef: 120,
             zCoef: 20,
             speed: 1.18,
             waveLength:150,
@@ -45,16 +45,7 @@ export class Waves{
             ...conf
         };
         this.scene = scene;
-        console.log(new SN());
         this.createPlane(scene,5000,5000);
-        this.lights = {
-            light1:null,
-            light2:null,
-            light3:null,
-            light4:null
-        };
-        this.initLights(this.scene);
-        this.updateLightsColors();
     }
 
     createPlane(scene,planeWidht,planeHeight){
@@ -73,28 +64,10 @@ export class Waves{
         
     }
 
-    initLights(scene){
-        const r = 30;
-        const y = 10;
-        const lightDistance = 500;
     
-        this.lights.light1 = new PointLight(this.conf.light1Color, this.conf.lightIntensity, lightDistance);
-        this.lights.light1.position.set(0, y, r);
-        scene.add(this.lights.light1);
-        this.lights.light2 = new PointLight(this.conf.light2Color, this.conf.lightIntensity, lightDistance);
-        this.lights.light2.position.set(0, -y, -r);
-        scene.add(this.lights.light2);
-        this.lights.light3 = new PointLight(this.conf.light3Color, this.conf.lightIntensity, lightDistance);
-        this.lights.light3.position.set(r, y, 0);
-        scene.add(this.lights.light3);
-        this.lights.light4 = new PointLight(this.conf.light4Color, this.conf.lightIntensity, lightDistance);
-        this.lights.light4.position.set(-r, y, 0);
-        scene.add(this.lights.light4);
-    }
 
     render(){
         this.animatePlane();
-        this.animateLights();
     }
 
     animatePlane() {
@@ -113,30 +86,5 @@ export class Waves{
         }
         this.plane.geometry.attributes.position.needsUpdate = true;
         // plane.geometry.computeBoundingSphere();
-    }
-
-    animateLights() {
-        const time = Date.now() * 0.001;
-        const d = 500;
-        this.lights.light1.position.x = Math.sin(time * 0.1) * d;
-        this.lights.light1.position.z = Math.cos(time * 0.2) * d;
-        this.lights.light2.position.x = Math.cos(time * 0.3) * d;
-        this.lights.light2.position.z = Math.sin(time * 0.4) * d;
-        this.lights.light3.position.x = Math.sin(time * 0.5) * d;
-        this.lights.light3.position.z = Math.sin(time * 0.6) * d;
-        this.lights.light4.position.x = Math.sin(time * 0.7) * d;
-        this.lights.light4.position.z = Math.cos(time * 0.8) * d;
-      }
-    
-    updateLightsColors() {
-        this.conf.light1Color = chroma.random().hex();
-        this.conf.light2Color = chroma.random().hex();
-        this.conf.light3Color = chroma.random().hex();
-        this.conf.light4Color = chroma.random().hex();
-        this.lights.light1.color = new Color(this.conf.light1Color);
-        this.lights.light2.color = new Color(this.conf.light2Color);
-        this.lights.light3.color = new Color(this.conf.light3Color);
-        this.lights.light4.color = new Color(this.conf.light4Color);
-        // console.log(conf);
     }
 }

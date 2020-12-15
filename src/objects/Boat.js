@@ -9,38 +9,30 @@ import {
   Object3D,
   Mesh,
   Color,
-  Vector3
+  Vector3,
+  EventDispatcher
 } from 'three'
 import { preloader } from '../loader'
 import {coeficients} from './Waves';
+import {GameEvents,GameEventsNames,ResourceTypes,BoatStats} from '../controls/GameController';
+import {UIEventsNames,UiEventsDispatcher} from '../controls/UIController';
 
-let boatHulMaterial = new MeshPhongMaterial({ 
-  color: 0xB74242, 
-  shininess: 100, 
-  emissive: 0x990000,
-  emissiveIntensity: 0.7
-});
+let BoatCargo = {}
+export {BoatCargo};
 
-let boatSailMaterial = new MeshPhongMaterial({ 
-  color: 0xffffff, 
-  shininess: 100, 
-  emissive: 0x990000,
-  emissiveIntensity: 0.7
-});
+let r = ResourceTypes.Bricks;
+const InitialCargo = {};
+InitialCargo[r]= 100;
 
-let carTopMaterial = new MeshPhongMaterial({ 
-  color: 0xB74242, 
-  //specular: 0x009900,
-  //bumpMap: noiseMap(128, 20, 5),
-  shininess: 100, 
-  emissive: 0x990000,
-  emissiveIntensity: 0.7
-});
+const BoatEvents = new EventDispatcher();
+export {BoatEvents};
 
 var KeysPressed  = []
 export {KeysPressed};
 
-export default class Boat extends Object3D {
+let BoatInstance 
+
+export class Boat extends Object3D {
   constructor(camera){
     super();
     this.sceneCamera = camera;
@@ -51,10 +43,6 @@ export default class Boat extends Object3D {
     this.lightsOn =  true;
     this.scale.setScalar(4);
     const boat = preloader.get('boat');
-    console.log(boat);
-    
-    let hulIndex = [0,1];
-    let sailIndex = [2,3];
 
     for(let i = 0;i<boat.scene.children.lenght;i++){
       boat.scene.children[i].material =  new MeshPhongMaterial({ 
@@ -66,13 +54,6 @@ export default class Boat extends Object3D {
         emissiveIntensity: 0.7
       });
     }
-
-    //for(let i = 0;i<hulIndex;i++){
-    //  boat.scene.children[hulIndex[i]].material= boatHulMaterial;
-    //}
-    //for(let i = 0;i<sailIndex;i++){
-    //  boat.scene.children[sailIndex[i]].material= boatSailMaterial;
-    //}
 
     this.add(boat.scene)
   
@@ -102,6 +83,14 @@ export default class Boat extends Object3D {
         KeysPressed[e.keyCode] = false;
         e.preventDefault();
       });
+    GameEvents.addEventListener(GameEventsNames.ExchangeResouces,(data)=>this.exchange(data));
+    BoatCargo = InitialCargo;
+    for (const [key, value] of Object.entries(ResourceTypes)) {
+      BoatCargo[value] = InitialCargo[value] !== undefined ? InitialCargo[value]:0;
+    }
+    UiEventsDispatcher.dispatchEvent({type:UIEventsNames.BoatCargoChanged,message:BoatCargo});
+    UiEventsDispatcher.dispatchEvent({type:UIEventsNames.BoatStatsChanged,message:BoatStats});
+    BoatInstance = this;
 }
 
 keyDown(e){
@@ -113,6 +102,50 @@ keyDown(e){
 keyUp(e){
      this.keys[e.code] = false;
      e.preventDefault();
+}
+
+getBoatCargo(){
+  return BoatCargo;
+}
+
+canAddToCargo(payload){
+  let totalCargo = 0;
+  for (const [key, value] of Object.entries(BoatCargo)) {
+    totalCargo+=value;
+  }
+  totalCargo+=payload.amount;
+  if (totalCargo < BoatStats.MaxCargo)
+    return true;
+  return false;
+}
+
+addToCargo(payload){
+  if(this.canAddToCargo(payload)){
+    if(BoatCargo[payload.type] != undefined){
+      BoatCargo[payload.type] += payload.amount;
+    }else{
+      BoatCargo[payload.type] = payload.amount;
+    }
+  }
+}
+
+canExchange(tradeInfo){
+  let currentPayload = BoatCargo[tradeInfo.from];
+  if(currentPayload !== undefined && currentPayload >= tradeInfo.factor){
+    return true;
+  }
+  return false;
+}
+
+exchange(msg){
+  let tradingInfo = msg.message;
+  if(this.canExchange(tradingInfo)){
+    BoatCargo[tradingInfo.from] -= tradingInfo.factor;
+    this.addToCargo({type:tradingInfo.to,amount:1});
+    UiEventsDispatcher.dispatchEvent({type:UIEventsNames.BoatCargoChanged,message:BoatCargo});
+  }else {
+    alert("Not enough resources to buy "+tradingInfo.to+" !!");
+  }
 }
 
 getBoatPos(position){
@@ -178,3 +211,6 @@ update(){
     );
 }
 }
+
+
+export {BoatInstance};
